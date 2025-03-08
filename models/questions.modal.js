@@ -1,13 +1,32 @@
-import db from '../db/db.js';
+import db from "../db/db.js";
 
 // Function to create a new question
-export const createQuestionModal = async (questionsName, status, chapterId, explanation, subjectId, shiftId, questionTypeId, shiftSubjectsId) => {
+export const createQuestionModal = async (
+  questionsName,
+  status,
+  chapterId,
+  explanation,
+  subjectId,
+  shiftId,
+  questionTypeId,
+  shiftSubjectsId
+) => {
   try {
-    const query = 'INSERT INTO questions (questions_name, status, chapter_id, explanation, subject_id, shift_id, id, shift_subjects_id) VALUES (?, ?, ?, ?, ?,?,?, ?)';
-    const [result] = await db.query(query, [questionsName, status, chapterId, explanation, subjectId, shiftId, questionTypeId, shiftSubjectsId]);
+    const query =
+      "INSERT INTO questions (questions_name, status, chapter_id, explanation, subject_id, shift_id, id, shift_subjects_id) VALUES (?, ?, ?, ?, ?,?,?, ?)";
+    const [result] = await db.query(query, [
+      questionsName,
+      status,
+      chapterId,
+      explanation,
+      subjectId,
+      shiftId,
+      questionTypeId,
+      shiftSubjectsId,
+    ]);
     return result;
   } catch (error) {
-    throw new Error('Error while creating question: ' + error.message);
+    throw new Error("Error while creating question: " + error.message);
   }
 };
 
@@ -57,7 +76,7 @@ export const getAllQuestionsChapterModal = async () => {
 
     // Format only the options for each question
     const formattedResponse = rows.reduce((acc, row) => {
-      let question = acc.find(q => q.questions_id === row.questions_id);
+      let question = acc.find((q) => q.questions_id === row.questions_id);
 
       if (!question) {
         // If the question doesn't exist in the accumulator, create a new one
@@ -78,7 +97,7 @@ export const getAllQuestionsChapterModal = async () => {
           unit_name: row.unit_name,
           subcategory_id: row.subcategory_id,
           subcategory_name: row.subcategory_name,
-          options: [] // Initialize an empty options array
+          options: [], // Initialize an empty options array
         };
 
         acc.push(question);
@@ -89,7 +108,7 @@ export const getAllQuestionsChapterModal = async () => {
         question.options.push({
           option_id: row.option_id,
           option_text: row.option_text,
-          is_correct: row.is_correct
+          is_correct: row.is_correct,
         });
       }
 
@@ -98,7 +117,7 @@ export const getAllQuestionsChapterModal = async () => {
 
     return formattedResponse;
   } catch (error) {
-    throw new Error('Error while fetching questions: ' + error.message);
+    throw new Error("Error while fetching questions: " + error.message);
   }
 };
 
@@ -147,7 +166,7 @@ export const getAllQuestionsShiftModal = async () => {
 
     // Format only the options for each question
     const formattedResponse = rows.reduce((acc, row) => {
-      let question = acc.find(q => q.questions_id === row.questions_id);
+      let question = acc.find((q) => q.questions_id === row.questions_id);
 
       if (!question) {
         // If the question doesn't exist in the accumulator, create a new one
@@ -168,7 +187,7 @@ export const getAllQuestionsShiftModal = async () => {
           year: row.year,
           subcategory_id: row.subcategory_id,
           subcategory_name: row.subcategory_name,
-          options: [] // Initialize an empty options array
+          options: [], // Initialize an empty options array
         };
 
         acc.push(question);
@@ -179,7 +198,7 @@ export const getAllQuestionsShiftModal = async () => {
         question.options.push({
           option_id: row.option_id,
           option_text: row.option_text,
-          is_correct: row.is_correct
+          is_correct: row.is_correct,
         });
       }
 
@@ -188,53 +207,89 @@ export const getAllQuestionsShiftModal = async () => {
 
     return formattedResponse;
   } catch (error) {
-    throw new Error('Error while fetching questions: ' + error.message);
+    throw new Error("Error while fetching questions: " + error.message);
   }
 };
-
 
 // Function to get a question by ID
 export const getQuestionByIdModal = async (id) => {
   try {
-    const query = 'SELECT * FROM questions WHERE questions_id = ?';
+    const query = "SELECT * FROM questions WHERE questions_id = ?";
     const [rows] = await db.query(query, [id]);
     if (rows.length === 0) {
-      throw new Error('Question not found');
+      throw new Error("Question not found");
     }
     return rows[0]; // Return the first matching question
   } catch (error) {
-    throw new Error('Error while fetching question: ' + error.message);
+    throw new Error("Error while fetching question: " + error.message);
   }
 };
 
 // Function to update a question
-export const updateQuestionModal = async (questionsName, status, chapterId, explanation, subjectId, shiftId, questionTypeId, shiftSubjectsId) => {
+export const updateQuestionModal = async (
+  questionsName,
+  status,
+  chapterId,
+  explanation,
+  subjectId,
+  shiftId,
+  questionTypeId,
+  shiftSubjectsId,
+  questionId
+) => {
   try {
-    const query = 'UPDATE questions SET questions_name = ?, status = ?, chapter_id = ? , explanation = ?, subject_id = ?, shift_id = ?, id = ?, shift_subjects_id = ? WHERE questions_id = ?';
-    const [result] = await db.query(query, [questionsName, status, chapterId, explanation, subjectId, shiftId, questionTypeId, shiftSubjectsId]);
+    // Update the query, making sure the values are correctly mapped to the placeholders
+    const query = `UPDATE questions SET 
+                      questions_name = ?, 
+                      status = ?, 
+                      chapter_id = ?, 
+                      explanation = ?, 
+                      subject_id = ?, 
+                      shift_id = ?, 
+                      id = ?,  -- Assuming this is a valid column in the questions table (e.g., question_type_id)
+                      shift_subjects_id = ? 
+                    WHERE questions_id = ?`;
+    // Execute the query with the correct values in the same order as placeholders
+    const [result] = await db.query(query, [
+      questionsName,        // questions_name
+      status,               // status
+      chapterId,            // chapter_id
+      explanation,          // explanation
+      subjectId,            // subject_id
+      shiftId,              // shift_id
+      questionTypeId,       // id (assuming this is the column representing question type ID or a similar reference)
+      shiftSubjectsId,      // shift_subjects_id
+      questionId,           // questions_id (this is the ID of the question to update)
+    ]);
+
+    // Check if any rows were affected (updated)
     if (result.affectedRows === 0) {
-      throw new Error('Question not found for update');
+      throw new Error("Question not found for update");
     }
+
+    // Return the result of the update operation
     return result;
   } catch (error) {
-    throw new Error('Error while updating question: ' + error.message);
+    // Handle any errors during the update process
+    throw new Error("Error while updating question: " + error.message);
   }
 };
+
+
 
 // Function to delete a question
 export const deleteQuestionModal = async (id) => {
   try {
-    const query = 'DELETE FROM questions WHERE questions_id = ?';
+    const query = "DELETE FROM questions WHERE questions_id = ?";
     const [result] = await db.query(query, [id]);
     if (result.affectedRows === 0) {
-      throw new Error('Question not found for deletion');
+      throw new Error("Question not found for deletion");
     }
     return result;
   } catch (error) {
-    throw new Error('Error while deleting question: ' + error.message);
+    throw new Error("Error while deleting question: " + error.message);
   }
 };
-
 
 // Get all questions with their options
 export const getAllQuestionsWithTheirOptionsModal = async () => {
@@ -268,7 +323,7 @@ export const getAllQuestionsWithTheirOptionsModal = async () => {
       } = row;
 
       // Find if the question already exists in the accumulator
-      let question = acc.find(q => q.questions_id === questions_id);
+      let question = acc.find((q) => q.questions_id === questions_id);
 
       if (!question) {
         // If not, create a new question object
@@ -277,7 +332,7 @@ export const getAllQuestionsWithTheirOptionsModal = async () => {
           shift,
           questions_name,
           difficulty,
-          options: []
+          options: [],
         };
         acc.push(question); // Add the question to the accumulator
       }
@@ -287,7 +342,7 @@ export const getAllQuestionsWithTheirOptionsModal = async () => {
         question.options.push({
           option_id,
           option_text,
-          is_correct
+          is_correct,
         });
       }
 
@@ -296,10 +351,9 @@ export const getAllQuestionsWithTheirOptionsModal = async () => {
 
     return questionsWithOptions; // Return the grouped result
   } catch (err) {
-    throw new Error('Failed to retrieve questions with options');
+    throw new Error("Failed to retrieve questions with options");
   }
 };
-
 
 export const getQuestionsWithOptionsByTopicId = async (topicId) => {
   try {
@@ -329,31 +383,29 @@ export const getQuestionsWithOptionsByTopicId = async (topicId) => {
 
     const formattedData = {};
 
-    rows.forEach(row => {
-      const { question_id, question_name, option_id, option_text, is_correct } = row;
+    rows.forEach((row) => {
+      const { question_id, question_name, option_id, option_text, is_correct } =
+        row;
 
       if (!formattedData[question_id]) {
         formattedData[question_id] = {
           question_name,
-          options: []
+          options: [],
         };
       }
 
       formattedData[question_id].options.push({
         option_id,
         option_text,
-        is_correct
+        is_correct,
       });
     });
 
     return formattedData;
-
   } catch (error) {
-    console.error('Error fetching questions and options:', error);
-    throw new Error(`An error occurred while fetching questions and options: ${error.message}`);
+    console.error("Error fetching questions and options:", error);
+    throw new Error(
+      `An error occurred while fetching questions and options: ${error.message}`
+    );
   }
 };
-
-
-
-

@@ -56,15 +56,38 @@ export const getQuestionById = async (req, res) => {
 // Controller function to update a question
 export const updateQuestion = async (req, res) => {
   try {
-    const { questions_id } = req.params;
-    const {questionsName, status, chapterId, explanation, subjectId, shiftId, questionTypeId, shiftSubjectsId} = req.body; // Assuming JSON payload
-    const result = await updateQuestionModal(questions_id, questionsName, status, chapterId, explanation, subjectId, shiftId, questionTypeId, shiftSubjectsId);
+    // Extracting data from request
+    const { questionId } = req.params; // Assuming the URL path is /questions/:questionId
+    const { questionsName, status, chapterId, explanation, subjectId, shiftId, questionTypeId, shiftSubjectsId } = req.body;
+
+    // Validate required fields
+    if (!questionsName || !status || !explanation || !questionTypeId) {
+      return res.status(400).json({ message: 'All fields are required' });
+    }
+
+    // Call the function to update the question
+    const result = await updateQuestionModal(
+      questionsName,
+      status,
+      chapterId,
+      explanation,
+      subjectId,
+      shiftId,
+      questionTypeId,
+      shiftSubjectsId,
+      questionId
+    );
+
+    // Check if the question was updated
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: 'Question not found' });
     }
+
+    // Success response
     res.status(200).json({ message: 'Question updated successfully' });
   } catch (error) {
     console.error(error);
+    // General error response
     res.status(500).json({ message: error.message || 'Error updating question' });
   }
 };

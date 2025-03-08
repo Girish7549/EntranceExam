@@ -12,7 +12,7 @@ router.get('/getAllQuestionShift', getAllQuestionsShiftController);
 router.get('/getQuestionById/:id', getQuestionById);
 
 // Route to update a question
-router.put('/updateQuestion/:id', updateQuestion);
+router.put('/updateQuestion/:questionId', updateQuestion);
 
 // Route to delete a question
 router.delete('/deleteQuestion/:id', deleteQuestion);
