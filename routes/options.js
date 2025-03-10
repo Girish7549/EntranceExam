@@ -4,7 +4,7 @@ import {
   getOptionsByQuestionId,
   getAllOptions,
   getOptionById,
-  updateOption,
+  updateOptionController,
   deleteOption,
   checkOptionCorrectness
 } from '../controllers/optionsModule/options.controller.js';
@@ -23,7 +23,7 @@ router.get('/getOptionsByQuestionId/:question_id', getOptionsByQuestionId);
 router.get('/getOptionById/:option_id', getOptionById);
 
 // Update an option
-router.put('/updateOption/:option_id', updateOption);
+router.put('/updateOption/:option_id', updateOptionController);
 
 // Delete an option
 router.delete('/deleteOption/:option_id', deleteOption);

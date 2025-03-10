@@ -60,7 +60,7 @@ export const getOptionById = async (req, res) => {
 };
 
 // Update an option
-export const updateOption = async (req, res) => {
+export const updateOptionController = async (req, res) => {
   const { option_id } = req.params;
   const { option_text, is_correct, question_id } = req.body;
 
@@ -69,12 +69,14 @@ export const updateOption = async (req, res) => {
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: 'Option not found' });
     }
-    res.status(200).json({ message: 'Option updated successfully' });
+
+    res.status(200).json({ message: 'Option updated successfully', updatedOption: result });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to update option' });
+    console.error('Error in updateOptionController:', err);
+    res.status(500).json({ error: 'Failed to update option', details: err.message });
   }
 };
+
 
 // Delete an option
 export const deleteOption = async (req, res) => {

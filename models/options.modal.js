@@ -46,15 +46,17 @@ export const getOptionById = async (option_id) => {
 };
 
 // Update an option (e.g., change option_text or is_correct)
-export const updateOption = async (option_id, option_text, is_correct, status, question_id) => {
+export const updateOption = async (option_id, option_text, is_correct, question_id) => {
   try {
-    const query = 'UPDATE options SET option_text = ?, is_correct = ?, status = ?, question_id = ?   WHERE option_id = ?';
-    const [result] = await db.query(query, [option_text, is_correct, status, question_id, option_id]);
+    const query = 'UPDATE options SET option_text = ?, is_correct = ?, questions_id = ? WHERE option_id = ?';
+    const [result] = await db.query(query, [option_text, is_correct, question_id, option_id]);
     return result;
   } catch (err) {
-    throw new Error('Failed to update option');
+    console.error('Error updating option:', err);
+    throw new Error(`Failed to update option: ${err.message}`);
   }
 };
+
 
 // Delete an option
 export const deleteOption = async (option_id) => {
