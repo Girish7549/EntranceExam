@@ -3,11 +3,21 @@ import * as shiftModel from '../../models/shift.modal.js';
 // Get all shifts
 export const getAllShifts = async (req, res) => {
   try {
-    const shifts = await shiftModel.getAllShifts();
-    res.status(200).json(shifts);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to retrieve shifts' });
+    const page = parseInt(req.query.page) || 1;
+
+    const result = await shiftModel.getAllShifts(page);
+
+    if (!result || result.data.length === 0) {
+      return res.status(404).json({ message: "No Shift found" });
+    }
+
+    return res.status(200).json({
+      message: "Shift fetched successfully",
+      ...result
+    });
+  } catch (error) {
+    console.error("Shift Controller Error:", error);
+    return res.status(500).json({ message: "Internal Server Error", error: error.message });
   }
 };
 
@@ -75,16 +85,16 @@ export const deleteShift = async (req, res) => {
 
 export const getQuestionsByShiftIdController = async (req, res) => {
   try {
-      const { shiftId } = req.params;
-      if (!shiftId) {
-          return res.status(400).json({ message: 'Shift ID is required' });
-      }
+    const { shiftId } = req.params;
+    if (!shiftId) {
+      return res.status(400).json({ message: 'Shift ID is required' });
+    }
 
-      const questions = await shiftModel.getQuestionsByShiftIdModal(shiftId);
-      res.status(200).json(questions);
+    const questions = await shiftModel.getQuestionsByShiftIdModal(shiftId);
+    res.status(200).json(questions);
   } catch (error) {
-      console.error('Controller error:', error);
-      res.status(500).json({ message: 'Internal server error' });
+    console.error('Controller error:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
 

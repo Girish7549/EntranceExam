@@ -1,11 +1,13 @@
-import { createCategoryModel, 
-  deleteCategoryByIdModel, 
-  editCategoryByIdModel, 
-  getAllCategoryAdminModel, 
-  getAllCategoryModel, 
-  getCategoryByIdModel, 
+import {
+  createCategoryModel,
+  deleteCategoryByIdModel,
+  editCategoryByIdModel,
+  getAllCategoryAdminModel,
+  getAllCategoryModel,
+  getCategoryByIdModel,
   getAllCategorySubCategorySubject,
-  getAllCategories_SubcategoryModal} from "../../models/category.model.js";
+  getAllCategories_SubcategoryModal
+} from "../../models/category.model.js";
 
 export const createCategory = async (req, res) => {
   const { categoryName, description, status } = req.body;
@@ -20,8 +22,8 @@ export const createCategory = async (req, res) => {
 
   try {
 
-    const result = await createCategoryModel(categoryName, description,  status);
-    
+    const result = await createCategoryModel(categoryName, description, status);
+
     return res.status(201).json("Category Created Successfully!");
   } catch (error) {
     console.log(error);
@@ -31,15 +33,20 @@ export const createCategory = async (req, res) => {
 
 export const getAllCategory = async (req, res) => {
   try {
-    const result = await getAllCategoryModel();
+    const page = parseInt(req.query.page) || 1;
 
-    if(!result) {
-        return res.status(400).json({message : "Category is not present"})
+    const result = await getAllCategoryModel(page);
+
+    if (!result || result.data.length === 0) {
+      return res.status(404).json({ message: "No categories found" });
     }
 
-    return res.status(200).json(result);
+    return res.status(200).json({
+      message: "categories fetched successfully",
+      ...result
+    });
   } catch (error) {
-    console.log(error);
+    console.error("category Controller Error:", error);
     return res.status(500).json({ message: "Internal Server Error", error: error.message });
   }
 };
@@ -49,8 +56,8 @@ export const getAllCategoryAdmin = async (req, res) => {
   try {
     const result = await getAllCategoryAdminModel();
 
-    if(!result) {
-        return res.status(400).json({message : "Category is not present"})
+    if (!result) {
+      return res.status(400).json({ message: "Category is not present" })
     }
 
     return res.status(200).json(result);
@@ -64,14 +71,14 @@ export const getCategoryById = async (req, res) => {
   try {
     const { categoryId } = req.params;
 
-    if(!categoryId) {
-        return res.status(400).json({message : "categoryId is required!"})
+    if (!categoryId) {
+      return res.status(400).json({ message: "categoryId is required!" })
     }
 
-    const result = await getCategoryByIdModel(categoryId); 
+    const result = await getCategoryByIdModel(categoryId);
 
-    if(!result) {
-        return res.status(400).json({message : "Category is not present"})
+    if (!result) {
+      return res.status(400).json({ message: "Category is not present" })
     }
 
     return res.status(200).json(result);
@@ -85,54 +92,54 @@ export const editCategoryById = async (req, res) => {
   const { categoryId } = req.params;
 
   if (!categoryId) {
-      return res.status(400).json({ message: "categoryId is required!" });
+    return res.status(400).json({ message: "categoryId is required!" });
   }
 
   const { categoryName, description, status } = req.body;
 
   try {
-      // Fetch the current category details from the model
-      const existingCategory = await editCategoryByIdModel(categoryId);
+    // Fetch the current category details from the model
+    const existingCategory = await editCategoryByIdModel(categoryId);
 
-      if (!existingCategory) {
-          return res.status(404).json({ message: "Category not found!" });
-      }
+    if (!existingCategory) {
+      return res.status(404).json({ message: "Category not found!" });
+    }
 
-      // Use the existing values if they are not provided in the request body
-      const updatedCategoryName = categoryName || existingCategory.category_name;
-      const updatedDescription = description || existingCategory.description;
-      const updatedStatus = status || existingCategory.status;
+    // Use the existing values if they are not provided in the request body
+    const updatedCategoryName = categoryName || existingCategory.category_name;
+    const updatedDescription = description || existingCategory.description;
+    const updatedStatus = status || existingCategory.status;
 
-      const result = await editCategoryByIdModel(
-          updatedCategoryName,
-          updatedDescription,
-          updatedStatus,
-          categoryId
-      );
+    const result = await editCategoryByIdModel(
+      updatedCategoryName,
+      updatedDescription,
+      updatedStatus,
+      categoryId
+    );
 
-      return res.status(201).json("Category updated successfully!");
+    return res.status(201).json("Category updated successfully!");
   } catch (error) {
-      console.log(error);
-      return res.status(500).json({ message: "Internal Server Error", error: error.message });
+    console.log(error);
+    return res.status(500).json({ message: "Internal Server Error", error: error.message });
   }
 };
 
 
 export const deleteCategoryById = async (req, res) => {
   try {
-    const {categoryId} = req.params;
+    const { categoryId } = req.params;
 
-    if(!categoryId) {
-        return res.status(400).json({message : "categoryId is required!"})
+    if (!categoryId) {
+      return res.status(400).json({ message: "categoryId is required!" })
     }
 
     const result = await deleteCategoryByIdModel(categoryId);
 
-    if(!result) {
-        return res.status(400).json({message : "Category is not present"});
+    if (!result) {
+      return res.status(400).json({ message: "Category is not present" });
     }
 
-    return res.status(200).json({message : "Category Deleted Successfully!"});
+    return res.status(200).json({ message: "Category Deleted Successfully!" });
 
   } catch (error) {
     console.log(error);

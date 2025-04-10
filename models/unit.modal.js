@@ -24,9 +24,11 @@ export const getUnitByIdModel = async (unitId) => {
 };
 
 // Get All Units
-export const getAllUnitsModel = async () => {
+export const getAllUnitsModel = async (page = 1) => {
   try {
-    const query = `SELECT 
+    const limit = 10;
+    const offset = (page - 1) * limit;
+    const dataQuery = `SELECT 
     unit.*, 
     subject.subject_name, 
     subcategories.subcategory_name, 
@@ -36,12 +38,21 @@ FROM
 JOIN 
     subject ON unit.subject_id = subject.subject_id
 JOIN 
-    subcategories ON subject.subcategory_id = subcategories.subcategory_id;
+    subcategories ON subject.subcategory_id = subcategories.subcategory_id
+   LIMIT ? OFFSET ?
 `;
-    const [units] = await db.query(query);
-    return units;
+    const countQuery = `SELECT COUNT(*) AS total FROM unit`;
+
+    const [dataResult] = await db.query(dataQuery, [limit, offset]);
+    const [[{ total }]] = await db.query(countQuery);
+
+    return {
+      data: dataResult,
+      total,
+    };
   } catch (error) {
-    throw new Error(`Error fetching all units: ${error.message}`);
+    console.error("Unit Model Error:", error);
+    throw new Error(`Unit Model DB error ${error.message}`);
   }
 };
 
@@ -62,7 +73,7 @@ export const getAllUnit_Subject_SubcategoryModal = async () => {
     JOIN 
     subcategories ON subject.subcategory_id = subcategories.subcategory_id;
     `;
-    
+
     const [units] = await db.query(query);
 
     // Initialize an empty object to store the formatted data

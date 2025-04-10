@@ -1,12 +1,12 @@
-import {createQuestionModal,getAllQuestionsChapterModal, getAllQuestionsShiftModal, getQuestionByIdModal, updateQuestionModal, deleteQuestionModal, getAllQuestionsWithTheirOptionsModal, getQuestionsWithOptionsByTopicId} from '../../models/questions.modal.js';
+import { createQuestionModal, getAllQuestionsChapterModal, getAllQuestionsShiftModal, getQuestionByIdModal, updateQuestionModal, deleteQuestionModal, getAllQuestionsWithTheirOptionsModal, getQuestionsWithOptionsByTopicId } from '../../models/questions.modal.js';
 
 export const createQuestion = async (req, res) => {
   try {
-    const {questionsName, status, chapterId, explanation, subjectId, shiftId, questionTypeId, shiftSubjectsId} = req.body;
+    const { questionsName, status, chapterId, explanation, subjectId, shiftId, questionTypeId, shiftSubjectsId } = req.body;
 
-    if (!questionsName ||  !status || !explanation || !questionTypeId) {
+    if (!questionsName || !status || !explanation || !questionTypeId) {
       return res.status(400).json({ message: "All fields are required!" });
-    } 
+    }
     const result = await createQuestionModal(questionsName, status, chapterId, explanation, subjectId, shiftId, questionTypeId, shiftSubjectsId);
     res.status(201).json({ message: 'Question created successfully', id: result.insertId });
   } catch (error) {
@@ -18,13 +18,27 @@ export const createQuestion = async (req, res) => {
 // Controller function to get all questions
 export const getAllQuestionsChapterController = async (req, res) => {
   try {
-    const questions = await getAllQuestionsChapterModal();
-    res.status(200).json(questions);
+    const page = parseInt(req.query.page) || 1;
+    const result = await getAllQuestionsChapterModal(page);
+
+    if (!result || result.data.length === 0) {
+      return res.status(404).json({ message: "No Question found" });
+    }
+
+    return res.status(200).json({
+      message: "Question fetched successfully",
+      ...result,
+    });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: error.message || 'Error fetching questions' });
+    console.error("Question Controller Error:", error);
+    return res.status(500).json({
+      message: "Internal Server Error",
+      error: error.message,
+    });
   }
 };
+
+
 
 
 export const getAllQuestionsShiftController = async (req, res) => {
@@ -123,7 +137,7 @@ export const getAllQuestionsWithTheirOptions = async (req, res) => {
 export const getQuestionsByTopicIdController = async (req, res) => {
   try {
     const topicId = parseInt(req.params.topicId); // Assuming topicId is passed as a parameter in the URL
-    
+
     if (isNaN(topicId)) {
       return res.status(400).json({ error: 'Invalid topic ID provided' });
     }

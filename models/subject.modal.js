@@ -23,14 +23,25 @@ export const createSubject = async (
 };
 
 // Get all subjects
-export const getAllSubjects = async () => {
+export const getAllSubjects = async (page = 1) => {
+  const limit = 10;
+  const offset = (page - 1) * limit;
+
   try {
-    const query = `SELECT subject.*, subcategories.subcategory_name FROM subject 
-                   JOIN subcategories ON subject.subcategory_id = subcategories.subcategory_id`;
-    const [subjects] = await db.query(query);
-    return subjects;
+    const dataQuery = `SELECT subject.*, subcategories.subcategory_name FROM subject 
+                   JOIN subcategories ON subject.subcategory_id = subcategories.subcategory_id 
+                   LIMIT ? OFFSET ?`;
+    const countQuery = `SELECT COUNT(*) AS total FROM subject`;
+    const [dataResult] = await db.query(dataQuery, [limit, offset]);
+    const [[{ total }]] = await db.query(countQuery);
+
+    return {
+      data: dataResult,
+      total,
+    };
   } catch (error) {
-    throw new Error(`Database error: ${error.message}`);
+    console.error("SubjectModel Model Error:", error);
+    throw new Error(`SubjectModel Model DB error ${error.message}`);
   }
 };
 

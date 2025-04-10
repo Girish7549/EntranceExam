@@ -9,7 +9,7 @@ export const createSubcategory = async (req, res) => {
             return res.status(400).json({ message: "Invalid Category ID" });
         }
 
-        if (!subcategoryName || !description ||  !subcatText || !status) {
+        if (!subcategoryName || !description || !subcatText || !status) {
             return res.status(400).json({ message: "All fields are required!" });
         }
 
@@ -37,31 +37,37 @@ export const createSubcategory = async (req, res) => {
 
 export const getAllSubcategory = async (req, res) => {
     try {
-        const result = await getAllSubcategoryModel();
+        const page = parseInt(req.query.page) || 1;
 
-        if(!result) {
-            return res.status(400).json({message : "Subcategory is not available"});
+        const result = await getAllSubcategoryModel(page);
+
+        if (!result || result.data.length === 0) {
+            return res.status(404).json({ message: "No subcategories found" });
         }
 
-        return res.status(200).json(result);
+        return res.status(200).json({
+            message: "Subcategories fetched successfully",
+            ...result
+        });
     } catch (error) {
-        console.log(error);
+        console.error("Subcategory Controller Error:", error);
         return res.status(500).json({ message: "Internal Server Error", error: error.message });
     }
-}
+};
+
 
 export const getSubcategoryById = async (req, res) => {
     try {
         const { subcategoryId } = req.params;
 
-        if(!subcategoryId) {
-            return res.status(400).json({message : "Subcategory Id is Invalid"});
+        if (!subcategoryId) {
+            return res.status(400).json({ message: "Subcategory Id is Invalid" });
         }
 
         const result = await getSubcategoryByIdModel(subcategoryId);
 
-        if(!result) {
-            return res.status(400).json({message : "Subcategory is empty"});
+        if (!result) {
+            return res.status(400).json({ message: "Subcategory is empty" });
         }
 
         return res.status(200).json(result);
@@ -104,19 +110,19 @@ export const editSubcategoryById = async (req, res) => {
 
 export const deleteSubcategoryById = async (req, res) => {
     try {
-        const {subcategoryId} = req.params;
+        const { subcategoryId } = req.params;
 
-        if(!subcategoryId) {
-            return res.status(400).json({message : "Subcategory Id in Invalid"})
+        if (!subcategoryId) {
+            return res.status(400).json({ message: "Subcategory Id in Invalid" })
         }
 
         const result = deleteSubcategoryByIdModel(subcategoryId);
 
-        if(!result) {
-            return res.status(400).json({message : "Subcategory not present"});
+        if (!result) {
+            return res.status(400).json({ message: "Subcategory not present" });
         }
 
-        return res.status(200).json({message : "Subcategory deleted Successfully!"})
+        return res.status(200).json({ message: "Subcategory deleted Successfully!" })
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: "Internal Server Error", error: error.message });
@@ -125,16 +131,16 @@ export const deleteSubcategoryById = async (req, res) => {
 
 export const filterSubcategoryById = async (req, res) => {
     try {
-        const {categoryId} = req.params;       
+        const { categoryId } = req.params;
 
-        if(!categoryId) {
-            return res.status(400).json({message : "category Id in Invalid"})
+        if (!categoryId) {
+            return res.status(400).json({ message: "category Id in Invalid" })
         }
 
         const result = await filterSubcategoryByIdModel(categoryId);
 
-        if(!result) {
-            return res.status(400).json({message : "category not present"});
+        if (!result) {
+            return res.status(400).json({ message: "category not present" });
         }
 
         return res.status(200).json(result);
@@ -146,25 +152,25 @@ export const filterSubcategoryById = async (req, res) => {
 
 
 export const getSubcategoryByIdDataController = async (req, res) => {
-  const { subcategoryId } = req.params; // Get subcategoryId from URL params
-  
-  try {
-    // Call the function to get data from the database
-    const subcategoryData = await getSubcategoryByIdSub_unit_chapter(subcategoryId);
+    const { subcategoryId } = req.params; // Get subcategoryId from URL params
 
-    // If no data was found for this subcategoryId
-    if (!subcategoryData || subcategoryData.subject.length === 0) {
-      return res.status(404).json({ error: 'Subcategory not found or no data available' });
+    try {
+        // Call the function to get data from the database
+        const subcategoryData = await getSubcategoryByIdSub_unit_chapter(subcategoryId);
+
+        // If no data was found for this subcategoryId
+        if (!subcategoryData || subcategoryData.subject.length === 0) {
+            return res.status(404).json({ error: 'Subcategory not found or no data available' });
+        }
+
+        // Send the fetched data as JSON response
+        res.json(subcategoryData);
+
+    } catch (error) {
+        // Handle any unexpected errors
+        console.error('Error in getSubcategoryController:', error);
+        res.status(500).json({ error: 'Internal server error. Please try again later.' });
     }
-
-    // Send the fetched data as JSON response
-    res.json(subcategoryData);
-    
-  } catch (error) {
-    // Handle any unexpected errors
-    console.error('Error in getSubcategoryController:', error);
-    res.status(500).json({ error: 'Internal server error. Please try again later.' });
-  }
 };
 
 
@@ -172,8 +178,8 @@ export const getAllSubcategoryYearShiftShiftSubjectsController = async (req, res
     try {
         const result = await getAllSubcategoryYearShiftShiftSubjectsModal();
 
-        if(!result) {
-            return res.status(400).json({message : "SubcategoryYearShiftShift_Subjects is not available"});
+        if (!result) {
+            return res.status(400).json({ message: "SubcategoryYearShiftShift_Subjects is not available" });
         }
 
         return res.status(200).json(result);

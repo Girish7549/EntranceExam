@@ -24,13 +24,24 @@ export const getChapterByIdModel = async (chapterId) => {
 };
 
 // Get All Chapters
-export const getAllChaptersModel = async () => {
+export const getAllChaptersModel = async (page = 1) => {
   try {
-    const query = "SELECT * FROM chapter";
-    const [chapters] = await db.query(query);
-    return chapters;
+    const limit = 10;
+    const offset = (page - 1) * limit;
+
+    const dataQuery = "SELECT * FROM chapter LIMIT ? OFFSET ?";
+    const countQuery = `SELECT COUNT(*) AS total FROM chapter`;
+
+    const [dataResult] = await db.query(dataQuery, [limit, offset]);
+    const [[{ total }]] = await db.query(countQuery);
+
+    return {
+      data: dataResult,
+      total,
+    };
   } catch (error) {
-    throw new Error(`Error fetching all chapters: ${error.message}`);
+    console.error("chapter Model Error:", error);
+    throw new Error(`chapter Model DB error ${error.message}`);
   }
 };
 
@@ -114,7 +125,7 @@ export const getChapterByIdQuestionsOptionsModal = async (chapterId) => {
     rows.forEach(row => {
       // Check if the question already exists in the chapterData
       let question = chapterData.questions.find(q => q.question_id === row.questions_id);
-      
+
       if (!question) {
         // If the question doesn't exist, create a new entry
         question = {

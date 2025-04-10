@@ -34,21 +34,33 @@ export const createSubcategoryModel = async (
 
 
 
-export const getAllSubcategoryModel = async () => {
+export const getAllSubcategoryModel = async (page = 1) => {
     try {
-        const query = `
+        const limit = 10;
+        const offset = (page - 1) * limit;
+
+        const dataQuery = `
             SELECT subcategories.*, categories.category_name
             FROM subcategories
             JOIN categories ON subcategories.category_id = categories.category_id
+            LIMIT ? OFFSET ?
         `;
 
-        const [result] = await db.query(query);
-        return result.length === 0 ? null : result;
+        const countQuery = `SELECT COUNT(*) AS total FROM subcategories`;
+
+        const [dataResult] = await db.query(dataQuery, [limit, offset]);
+        const [[{ total }]] = await db.query(countQuery);
+
+        return {
+            data: dataResult,
+            total,
+        };
     } catch (error) {
         console.error("SubcategoryModel Model Error:", error);
         throw new Error(`SubcategoryModel Model DB error ${error.message}`);
     }
 };
+
 
 export const getSubcategoryByIdModel = async (subcategoryId) => {
     try {

@@ -3,11 +3,20 @@ import * as yearModel from '../../models/year.model.js';
 // Get all years
 export const getAllYears = async (req, res) => {
   try {
-    const years = await yearModel.getAllYears();
-    res.status(200).json(years);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to retrieve years' });
+    const page = parseInt(req.query.page) || 1;
+
+    const result = await yearModel.getAllYears(page);
+    if (!result || result.length === 0) {
+      return res.status(404).json({ message: "No Year found" });
+    }
+
+    return res.status(200).json({
+      message: "Year fetched successfully",
+      ...result
+    });
+  } catch (error) {
+    console.error("Year Controller Error:", error);
+    return res.status(500).json({ message: "Internal Server Error", error: error.message });
   }
 };
 
@@ -102,15 +111,15 @@ export const getYearShiftDataController = async (req, res) => {
   try {
     // Retrieve the subcategoryId from the request parameters (or body, depending on where it's coming from)
     const { subcategoryId } = req.params; // Assuming the subcategoryId is passed in the URL as a parameter
-    
+
     // Get the year shift data using the model function
     const data = await yearModel.getYearShiftDataModal(subcategoryId);
-    
+
     // Check if data was found
     if (data.length === 0) {
       return res.status(404).json({ message: 'No data found for the given subcategoryId' });
     }
-    
+
     // Respond with the formatted data
     return res.status(200).json(data);
   } catch (error) {

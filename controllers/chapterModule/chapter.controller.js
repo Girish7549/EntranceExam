@@ -35,7 +35,7 @@ export const getChapterById = async (req, res) => {
       return res.status(404).json({ message: "Chapter not found" });
     }
 
-    return res.status(200).json([chapter ]);
+    return res.status(200).json([chapter]);
   } catch (error) {
     console.error("Get Chapter By ID Error:", error);
     return res.status(500).json({ message: "Internal Server Error", error: error.message });
@@ -45,10 +45,19 @@ export const getChapterById = async (req, res) => {
 // Get All Chapters
 export const getAllChapters = async (req, res) => {
   try {
-    const chapters = await getAllChaptersModel();
-    return res.status(200).json(chapters);
+    const page = parseInt(req.query.page) || 1;
+    const result = await getAllChaptersModel(page);
+
+    if (!result || result.data.length === 0) {
+      return res.status(404).json({ message: "No chapter found" });
+    }
+
+    return res.status(200).json({
+      message: "chapter fetched successfully",
+      ...result
+    });
   } catch (error) {
-    console.error("Get All Chapters Error:", error);
+    console.error("chapter Controller Error:", error);
     return res.status(500).json({ message: "Internal Server Error", error: error.message });
   }
 };
@@ -106,7 +115,7 @@ export const getTopicsFromChapter = async (req, res) => {
     }
 
     // Return the topics in the response
-    res.json( topics );
+    res.json(topics);
   } catch (error) {
     console.error('Error fetching topics:', error);
     // Return a 500 status for internal server errors

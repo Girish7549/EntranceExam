@@ -1,20 +1,25 @@
 import db from '../db/db.js'; // Import database connection
 
 // Get all shifts
-export const getAllShifts = async () => {
+export const getAllShifts = async (page = 1) => {
+
   try {
-    const query = 'SELECT * FROM shift';
-    const [results] = await db.query(query);
+    const limit = 10;
+    const offset = (page - 1) * limit;
 
-    // Ensure 'language' is parsed from JSON
-    const formattedResults = results.map(shift => ({
-      ...shift,
-      language: shift.language ? JSON.parse(shift.language) : [] // Convert JSON string to array
-    }));
+    const dataQuery = 'SELECT * FROM shift LIMIT ? OFFSET ?';
+    const countQuery = `SELECT COUNT(*) AS total FROM shift`;
 
-    return formattedResults;
-  } catch (err) {
-    throw new Error('Failed to retrieve shifts');
+    const [dataResult] = await db.query(dataQuery, [limit, offset]);
+    const [[{ total }]] = await db.query(countQuery);
+
+    return {
+      data: dataResult,
+      total,
+    };
+  } catch (error) {
+    console.error("Shift Model Error:", error);
+    throw new Error(`Shift Model DB error ${error.message}`);
   }
 };
 
@@ -70,7 +75,7 @@ export const updateShift = async (shiftId, shift_name, year_id, shift_date_time,
     if (shiftResult.length === 0) {
       throw new Error("Shift ID not found");
     }
-    
+
     // Prepare update query
     const query = 'UPDATE shift SET shift_name = ?, year_id = ?, shift_date_time = ?, status = ?, language = ? WHERE shift_id = ?';
 

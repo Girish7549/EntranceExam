@@ -1,18 +1,29 @@
 import db from "../db/db.js"; // Import database connection
 
 // Get all years
-export const getAllYears = async () => {
+export const getAllYears = async (page = 1) => {
   try {
-    const query = `
+    const limit = 10;
+    const offset = (page - 1) * limit;
+    const dataQuery = `
       SELECT py.*, s.subcategory_name 
       FROM previous_year py
       JOIN subcategories s ON py.subcategory_id = s.subcategory_id
+      LIMIT ? OFFSET ?
     `;
 
-    const [results] = await db.query(query);
-    return results;
-  } catch (err) {
-    throw new Error("Failed to retrieve years");
+    const countQuery = `SELECT COUNT(*) AS total FROM previous_year`;
+
+    const [dataResult] = await db.query(dataQuery, [limit, offset]);
+    const [[{ total }]] = await db.query(countQuery);
+
+    return {
+      data: dataResult,
+      total,
+    };
+  } catch (error) {
+    console.error("Year Model Error:", error);
+    throw new Error(`Year Model DB error ${error.message}`);
   }
 };
 

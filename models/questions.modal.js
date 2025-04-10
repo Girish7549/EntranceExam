@@ -31,10 +31,13 @@ export const createQuestionModal = async (
 };
 
 // Function to get all questions
-export const getAllQuestionsChapterModal = async () => {
+export const getAllQuestionsChapterModal = async (page = 1) => {
   try {
-    const query = `
-    SELECT 
+    const limit = 10; // Pagination limit
+    const offset = (page - 1) * limit; // Calculating the offset
+
+    // Query to fetch questions with related data
+    const dataQuery = `SELECT 
       questions.questions_id,
       questions.questions_name,
       questions.status, 
@@ -69,12 +72,21 @@ export const getAllQuestionsChapterModal = async () => {
     LEFT JOIN
       options ON options.questions_id = questions.questions_id
     ORDER BY 
-      questions.questions_id, options.option_id;
-    `;
+      questions.questions_id, options.option_id
+    LIMIT ? OFFSET ?`;
 
-    const [rows] = await db.query(query);
+    // Query to get total count of questions with a chapter_id
+    const countQuery = `SELECT COUNT(*) AS total 
+                        FROM questions 
+                        WHERE chapter_id IS NOT NULL;`;
 
-    // Format only the options for each question
+    // Execute the data query
+    const [rows] = await db.query(dataQuery, [limit, offset]);
+
+    // Execute the count query to get total question count
+    const [[{ total }]] = await db.query(countQuery);
+
+    // Format the response to include options for each question
     const formattedResponse = rows.reduce((acc, row) => {
       let question = acc.find((q) => q.questions_id === row.questions_id);
 
@@ -97,13 +109,14 @@ export const getAllQuestionsChapterModal = async () => {
           unit_name: row.unit_name,
           subcategory_id: row.subcategory_id,
           subcategory_name: row.subcategory_name,
-          options: [], // Initialize an empty options array
+          options: [], // Initialize empty options array
         };
 
+        // Add the question to the accumulator
         acc.push(question);
       }
 
-      // Only add option if it exists (i.e., if row.option_id is not undefined)
+      // Only add option if it exists (i.e., if row.option_id is not null)
       if (row.option_id !== null && row.option_id !== undefined) {
         question.options.push({
           option_id: row.option_id,
@@ -115,11 +128,16 @@ export const getAllQuestionsChapterModal = async () => {
       return acc;
     }, []);
 
-    return formattedResponse;
+    // Return formatted response and total count
+    return {
+      data :formattedResponse,
+      total,
+    };
   } catch (error) {
     throw new Error("Error while fetching questions: " + error.message);
   }
 };
+
 
 export const getAllQuestionsShiftModal = async () => {
   try {

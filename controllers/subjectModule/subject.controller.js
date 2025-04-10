@@ -17,12 +17,20 @@ export const createSubjectController = async (req, res) => {
 
 // Get all subjects
 export const getAllSubjectsController = async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const result = await getAllSubjects(page);
   try {
-    const subjects = await getAllSubjects();
-    res.status(200).json(subjects);
+    if (!result || result.data.length === 0) {
+      return res.status(404).json({ message: "No subcategories found" });
+    }
+
+    return res.status(200).json({
+      message: "Subject fetched successfully",
+      ...result
+    });
   } catch (error) {
-    console.error('Error fetching subjects:', error);
-    res.status(500).json({ message: 'Internal Server Error', error: error.message });
+    console.error("Subject Controller Error:", error);
+    return res.status(500).json({ message: "Internal Server Error", error: error.message });
   }
 };
 

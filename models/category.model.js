@@ -17,14 +17,25 @@ export const createCategoryModel = async (
   }
 };
 
-export const getAllCategoryModel = async () => {
+export const getAllCategoryModel = async (page = 1) => {
+
   try {
-    const query = "SELECT * FROM categories";
-    const [result] = await db.query(query);
-    return result.length === 0 ? null : result;
+    const limit = 10;
+    const offset = (page - 1) * limit;
+    const dataQuery = `SELECT * FROM categories LIMIT ? OFFSET ?`;
+
+    const countQuery = `SELECT COUNT(*) AS total FROM categories`;
+
+    const [dataResult] = await db.query(dataQuery, [limit, offset]);
+    const [[{ total }]] = await db.query(countQuery);
+
+    return {
+      data: dataResult,
+      total,
+    };
   } catch (error) {
-    console.log(error);
-    throw new Error(`Category Model DB error ${error.message}`);
+    console.error("CategoryModel Model Error:", error);
+    throw new Error(`CategoryModel Model DB error ${error.message}`);
   }
 };
 
