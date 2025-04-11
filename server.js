@@ -16,7 +16,7 @@ app.use(cookieParser())
 app.use(morgan('common'));
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:4000'],
+  origin: ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:4000', 'https://adzdrio-exam-admin-panel.onrender.com'],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
