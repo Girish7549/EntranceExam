@@ -33,65 +33,63 @@ export const createQuestionModal = async (
 // Function to get all questions
 export const getAllQuestionsChapterModal = async (page = 1) => {
   try {
-    const limit = 10; // Pagination limit
-    const offset = (page - 1) * limit; // Calculating the offset
+    const limit = 40;
+    const offset = (page - 1) * limit;
 
-    // Query to fetch questions with related data
-    const dataQuery = `SELECT 
-      questions.questions_id,
-      questions.questions_name,
-      questions.status, 
-      questions.created_at,
-      questions.updated_at,
-      questions.explanation,
-      subject.subject_id,
-      subject.subject_name,
-      question_types.id AS type_id,
-      question_types.type_name,
-      chapter.chapter_id,
-      chapter.chapter_name,
-      chapter.unit_id,
-      unit.unit_name,
-      subcategories.subcategory_id,
-      subcategories.subcategory_name,
-      options.option_id,
-      options.option_text,
-      options.is_correct
-    FROM 
-      questions
-    JOIN 
-      chapter ON questions.chapter_id = chapter.chapter_id
-    JOIN 
-      subject ON questions.subject_id = subject.subject_id
-    JOIN 
-      question_types ON questions.id = question_types.id
-    JOIN 
-      unit ON chapter.unit_id = unit.unit_id
-    JOIN 
-      subcategories ON subject.subcategory_id = subcategories.subcategory_id
-    LEFT JOIN
-      options ON options.questions_id = questions.questions_id
-    ORDER BY 
-      questions.questions_id, options.option_id
-    LIMIT ? OFFSET ?`;
+    const dataQuery = `
+      SELECT 
+        questions.questions_id,
+        questions.questions_name,
+        questions.status, 
+        questions.created_at,
+        questions.updated_at,
+        questions.explanation,
 
-    // Query to get total count of questions with a chapter_id
-    const countQuery = `SELECT COUNT(*) AS total 
-                        FROM questions 
-                        WHERE chapter_id IS NOT NULL;`;
+        subject.subject_id,
+        subject.subject_name,
 
-    // Execute the data query
+        question_types.id AS type_id,
+        question_types.type_name,
+
+        chapter.chapter_id,
+        chapter.chapter_name,
+        chapter.unit_id,
+
+        unit.unit_name,
+
+        subcategories.subcategory_id,
+        subcategories.subcategory_name,
+
+        options.option_id,
+        options.option_text,
+        options.is_correct
+
+      FROM questions
+
+      JOIN chapter ON questions.chapter_id = chapter.chapter_id
+      JOIN subject ON questions.subject_id = subject.subject_id
+      JOIN question_types ON questions.id = question_types.id -- ✅ fixed join
+      JOIN unit ON chapter.unit_id = unit.unit_id
+      JOIN subcategories ON subject.subcategory_id = subcategories.subcategory_id
+      LEFT JOIN options ON options.questions_id = questions.questions_id
+
+      ORDER BY questions.questions_id, options.option_id
+      LIMIT ? OFFSET ?;
+    `;
+
+    const countQuery = `
+      SELECT COUNT(*) AS total 
+      FROM questions 
+      WHERE chapter_id IS NOT NULL;
+    `;
+
     const [rows] = await db.query(dataQuery, [limit, offset]);
-
-    // Execute the count query to get total question count
     const [[{ total }]] = await db.query(countQuery);
 
-    // Format the response to include options for each question
     const formattedResponse = rows.reduce((acc, row) => {
-      let question = acc.find((q) => q.questions_id === row.questions_id);
+      let question = acc.find(q => q.questions_id === row.questions_id);
 
       if (!question) {
-        // If the question doesn't exist in the accumulator, create a new one
         question = {
           questions_id: row.questions_id,
           questions_name: row.questions_name,
@@ -99,24 +97,28 @@ export const getAllQuestionsChapterModal = async (page = 1) => {
           created_at: row.created_at,
           updated_at: row.updated_at,
           explanation: row.explanation,
+
           subject_id: row.subject_id,
           subject_name: row.subject_name,
+
           type_id: row.type_id,
           type_name: row.type_name,
+
           chapter_id: row.chapter_id,
           chapter_name: row.chapter_name,
+
           unit_id: row.unit_id,
           unit_name: row.unit_name,
+
           subcategory_id: row.subcategory_id,
           subcategory_name: row.subcategory_name,
-          options: [], // Initialize empty options array
+
+          options: [],
         };
 
-        // Add the question to the accumulator
         acc.push(question);
       }
 
-      // Only add option if it exists (i.e., if row.option_id is not null)
       if (row.option_id !== null && row.option_id !== undefined) {
         question.options.push({
           option_id: row.option_id,
@@ -128,15 +130,17 @@ export const getAllQuestionsChapterModal = async (page = 1) => {
       return acc;
     }, []);
 
-    // Return formatted response and total count
     return {
-      data :formattedResponse,
+      data: formattedResponse,
       total,
+      page,
+      pageSize: limit,
     };
   } catch (error) {
     throw new Error("Error while fetching questions: " + error.message);
   }
 };
+
 
 
 export const getAllQuestionsShiftModal = async () => {
